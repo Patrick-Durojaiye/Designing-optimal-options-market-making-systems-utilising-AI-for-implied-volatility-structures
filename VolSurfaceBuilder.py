@@ -82,7 +82,7 @@ class SVIModel:
         v_tilde = (self.market_ivs**2 * self.maturities[:, np.newaxis]).flatten()
         T = self.maturities.max()
 
-        inital_guess = [0.01, 0.42]
+        inital_guess = [0.05, 0.36]
         #m and sigma
         bounds = [(2*min(x), 2*max(x)), (0.005,1)]
         res = minimize(self.gradient_solution, inital_guess, args=(x, v_tilde), bounds=bounds, method="Nelder-Mead")
@@ -108,7 +108,7 @@ class SVIModel:
                 {'type': 'ineq', 'fun': lambda x: np.max(v_tilde) - x[2]}
             ]
 
-            result = minimize(self.cost_function, initial_guess, args=(y, v_tilde), jac=self.cost_gradient, constraints=constraints, method='L-BFGS-B')
+            result = minimize(self.cost_function, initial_guess, args=(y, v_tilde), jac=self.cost_gradient, constraints=constraints)
             c, d, a_tilde = result.x
 
         a = a_tilde / T
@@ -199,9 +199,15 @@ class SVIModel:
 
 import pandas as pd
 
-# data = pd.read_csv("test_data.csv")
-
 deribit_chain = pd.read_csv("options_data_set_4.csv")
+deribit_chain = deribit_chain[deribit_chain["Option_Type"] == "Call"]
+deribit_chain['Expiry_Date'] = pd.to_datetime(deribit_chain['Expiry_Date'])
+deribit_chain['Expiry_Date'] = deribit_chain['Expiry_Date'].dt.strftime('%d%b%y').str.upper()
+deribit_chain['Strike_Price'] = deribit_chain['Strike_Price'].astype(int).astype(str)
+deribit_chain['instrument_name'] = deribit_chain['Coin_Name'] + '-' + deribit_chain['Expiry_Date'] + '-' + deribit_chain['Strike_Price'] + '-C'
+deribit_chain['Strike_Price'] = deribit_chain['Strike_Price'].astype(int)
+
+
 deribit_chain.set_index('timestamp', inplace=True)
 unique_timestamps = deribit_chain.index.unique()
 timestamp_dict = {}
@@ -212,19 +218,19 @@ for timestamp in unique_timestamps:
 
     unique_expiry_dates = df_timestamp['Time_To_Maturity'].unique()
     unique_expiry_dates = np.sort(unique_expiry_dates)
-
     expiry_date_dict = {}
 
-    # Loops through each unique expiry date and filters the data
+    # Loop through each unique expiry date and filter the data
     for expiry_date in unique_expiry_dates:
+        # tmp = df_timestamp[df_timestamp['Time_To_Maturity'] == expiry_date]
+        # tmp.sort_values(by="Strike_Price", ascending=True)
         expiry_date_dict[expiry_date] = df_timestamp[df_timestamp['Time_To_Maturity'] == expiry_date].sort_values(by="Strike_Price", ascending=True)
 
-    # Stores a dictionary of data for each expiry date for the current timestamp
+    # Store the dictionary of expiry dates for the current timestamp
     timestamp_dict[timestamp] = expiry_date_dict
 
-
 first_timestamp = list(timestamp_dict.keys())[0]
-first_expiry_date = list(timestamp_dict[first_timestamp].keys())[0]
+first_expiry_date = list(timestamp_dict[first_timestamp].keys())[3]
 
 data = timestamp_dict[first_timestamp][first_expiry_date]
 
