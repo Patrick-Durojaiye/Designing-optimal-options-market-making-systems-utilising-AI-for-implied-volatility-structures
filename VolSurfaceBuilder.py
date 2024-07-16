@@ -82,7 +82,8 @@ class SVIModel:
         v_tilde = (self.market_ivs**2 * self.maturities[:, np.newaxis]).flatten()
         T = self.maturities.max()
 
-        inital_guess = [0.05, 0.36]
+
+        inital_guess = [(min(x) + max(x))/2, 1]
         #m and sigma
         bounds = [(2*min(x), 2*max(x)), (0.005,1)]
         res = minimize(self.gradient_solution, inital_guess, args=(x, v_tilde), bounds=bounds, method="Nelder-Mead")
@@ -199,7 +200,7 @@ class SVIModel:
 
 import pandas as pd
 
-deribit_chain = pd.read_csv("options_data_set_4.csv")
+deribit_chain = pd.read_csv("data/dataset_4_cleaned.csv")
 deribit_chain = deribit_chain[deribit_chain["Option_Type"] == "Call"]
 deribit_chain['Expiry_Date'] = pd.to_datetime(deribit_chain['Expiry_Date'])
 deribit_chain['Expiry_Date'] = deribit_chain['Expiry_Date'].dt.strftime('%d%b%y').str.upper()
@@ -222,18 +223,15 @@ for timestamp in unique_timestamps:
 
     # Loop through each unique expiry date and filter the data
     for expiry_date in unique_expiry_dates:
-        # tmp = df_timestamp[df_timestamp['Time_To_Maturity'] == expiry_date]
-        # tmp.sort_values(by="Strike_Price", ascending=True)
         expiry_date_dict[expiry_date] = df_timestamp[df_timestamp['Time_To_Maturity'] == expiry_date].sort_values(by="Strike_Price", ascending=True)
 
     # Store the dictionary of expiry dates for the current timestamp
     timestamp_dict[timestamp] = expiry_date_dict
 
 first_timestamp = list(timestamp_dict.keys())[0]
-first_expiry_date = list(timestamp_dict[first_timestamp].keys())[3]
+first_expiry_date = list(timestamp_dict[first_timestamp].keys())[0]
 
 data = timestamp_dict[first_timestamp][first_expiry_date]
-
 
 data["Moneyness"] = np.log(data["Strike_Price"]/data["Coin_Price"])
 
@@ -242,16 +240,16 @@ unique_maturities = data['Time_To_Maturity'].unique()
 unique_strikes = data['Strike_Price'].unique()
 
 market_vols = np.zeros((len(unique_maturities), len(unique_strikes)))
-data['mark_iv'] = data['mark_iv'] / 100  #converts iv from % to decimal
+data['mid_iv'] = data['mid_iv'] / 100  #converts iv from % to decimal
 
 # Stores the iv's in market vol
 for i, T in enumerate(unique_maturities):
     for j, K in enumerate(unique_strikes):
-        market_vols[i, j] = data[(data['Time_To_Maturity'] == T) & (data['Strike_Price'] == K)]['mark_iv'].values[0]
+        market_vols[i, j] = data[(data['Time_To_Maturity'] == T) & (data['Strike_Price'] == K)]['mid_iv'].values[0]
 
 strikes = np.array(unique_strikes)
 maturities = np.array(unique_maturities)
-
+print("maturities", maturities)
 spot_price = data['Coin_Price'].iloc[0]
 
 svi_model = SVIModel(strikes, spot_price, market_vols, maturities)

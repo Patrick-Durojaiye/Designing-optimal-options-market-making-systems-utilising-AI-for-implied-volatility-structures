@@ -1,10 +1,10 @@
 from abc import ABC
 import time
 
-from MarketMaker import MarketMaker
-from OrderCandidate import OrderCandidate
-from DeribitTrader import DeribitTrader
-from PricingModel import BlackScholes
+from trader.MarketMaker import MarketMaker
+from trader.OrderCandidate import OrderCandidate
+from trader.DeribitTrader import DeribitTrader
+from trader.PricingModel import BlackScholes
 
 
 class BTCOptionsMarketMaker(MarketMaker, ABC, DeribitTrader, BlackScholes):
