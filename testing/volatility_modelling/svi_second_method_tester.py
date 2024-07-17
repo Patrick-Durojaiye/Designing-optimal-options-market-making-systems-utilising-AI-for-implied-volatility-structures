@@ -1,10 +1,10 @@
 import numpy as np
-from volatility_modelling.calibration_methods.svi_parameters_calibration import SVICalibration
+from volatility_modelling.calibration_methods.svi_second_calibration_method import SVICalibration
 
 from testing.test_data import get_test_data
 
 
-def test_svi_calibration():
+def test_svi_second_method_calibration():
     data = get_test_data()
 
     data["Moneyness"] = np.log(data["Strike_Price"] / data["Coin_Price"])
@@ -23,12 +23,12 @@ def test_svi_calibration():
 
     strikes = np.array(unique_strikes)
     maturities = np.array(unique_maturities)
-    print("maturities", maturities)
     spot_price = data['Coin_Price'].iloc[0]
 
+    # New Quasi Explicit Calibration with Least Squares
     svi = SVICalibration(market_strikes=strikes, spot_price=spot_price, market_ivs=market_vols, maturities=maturities)
-    svi_params = svi.calibrate()
 
+    svi_params = svi.quasi_calibration(init_msigma=[0.08, 0.423], maxiter=10000)
     print("Svi Params:", svi_params)
     svi.plot_fit()
     return svi_params

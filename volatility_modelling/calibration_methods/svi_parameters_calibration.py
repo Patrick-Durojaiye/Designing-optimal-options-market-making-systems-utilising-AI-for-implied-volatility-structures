@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import matplotlib
 import sys
 matplotlib.use('TkAgg')
-
+from volatility_modelling.models.svi_model import SVIModel
 
 class SVICalibration:
 
@@ -16,10 +16,11 @@ class SVICalibration:
         self.maturities = maturities
         self.log_moneyness = np.log(market_strikes / spot_price)
         self.params = None
+        self.svi_model = SVIModel()
 
     def cost_function(self, params, y, v_tidle):
         c, d, a_tidle = params
-        return np.sum((a_tidle + (d * y) + c * np.sqrt(y ** 2 + 1) - v_tidle) ** 2)
+        return np.sqrt(np.mean((a_tidle + (d * y) + c * np.sqrt(y ** 2 + 1) - v_tidle) ** 2))
 
     def cost_gradient(self, params, y, v_tidle):
         c, d, a_tidle = params
@@ -76,9 +77,9 @@ class SVICalibration:
         v_tilde = (self.market_ivs**2 * self.maturities[:, np.newaxis]).flatten()
         T = self.maturities.max()
 
-
+        # m and sigma
         inital_guess = [(min(x) + max(x))/2, 1]
-        #m and sigma
+
         bounds = [(2*min(x), 2*max(x)), (0.005,1)]
         res = minimize(self.gradient_solution, inital_guess, args=(x, v_tilde), bounds=bounds, method="Nelder-Mead")
 
@@ -97,7 +98,7 @@ class SVICalibration:
             constraints = [
                 {'type': 'ineq', 'fun': lambda x: x[0]},
                 {'type': 'ineq', 'fun': lambda x: 4 * sigma - x[0]},
-                {'type': 'ineq', 'fun': lambda x: c - abs(x[1])},
+                {'type': 'ineq', 'fun': lambda x: x[0] - abs(x[1])},
                 {'type': 'ineq', 'fun': lambda x: 4 * sigma - x[0] - abs(x[1])},
                 {'type': 'ineq', 'fun': lambda x: x[2]},
                 {'type': 'ineq', 'fun': lambda x: np.max(v_tilde) - x[2]}
@@ -112,3 +113,23 @@ class SVICalibration:
 
         self.params = (a, b, rho, sigma, m)
         return self.params
+
+    def plot_fit(self):
+        """
+            Plots the volatility smile from the SVI
+            :return:
+        """
+        if self.params is None:
+            raise ValueError("Model parameters have not yet been successfully calibrated.")
+
+        for i, T in enumerate(self.maturities):
+            # fitted_vols = np.sqrt(self.svi(self.params[i], self.log_moneyness))
+            fitted_vols = np.sqrt([self.svi_model.evaluate_svi(self.params, lm) / T for lm in self.market_strikes])
+            plt.figure(figsize=(10, 6))
+            plt.plot(self.market_strikes, self.market_ivs[i], 'ro', label='Market Vols')
+            plt.plot(self.market_strikes, fitted_vols, 'b-', label='SVI Fit')
+            plt.xlabel('Strike Prices')
+            plt.ylabel('Implied Volatility')
+            plt.legend()
+            plt.title(f'SVI Calibration Fit to Market Data for Maturity {T} days')
+            plt.show()
