@@ -3,14 +3,40 @@ from trader.PricingModel import BlackScholes
 
 
 class NewthonRaphson:
+    """
+    This class implements the Newton-Raphson method for finding the implied volatility
+    of an option using the Black-Scholes model.
+    """
 
     def __init__(self, max_iter: int):
+        """
+        Initializes the NewtonRaphson object.
+
+        Parameters:
+        max_iter (int): The maximum number of iterations for the Newton-Raphson method.
+        """
+
         self.max_iter = max_iter
         self.bs = BlackScholes()
 
     def nr_solution(self, spot_price: float, strike_price: float, r: float, initial_guess: float, t: float, market_price: float, tolerance=1e-8):
+        """
+        Finds the implied volatility using the Newton-Raphson method.
 
-        epsilon = 1e-4
+        Parameters:
+        spot_price (float): The current price of the underlying asset.
+        strike_price (float): The strike price of the option.
+        r (float): The risk-free interest rate.
+        initial_guess (float): The initial guess for the volatility.
+        t (float): The time to maturity of the option.
+        market_price (float): The market price of the option.
+        tolerance (float): The tolerance for the root finding convergence. Default is 1e-8.
+
+        Returns:
+        float: The implied volatility. Returns NaN if the solution does not converge.
+        """
+
+        epsilon = 1e-4 # Small value to check for near-zero Vega
         sigma = initial_guess
 
         for i in range(self.max_iter+1):
@@ -25,8 +51,10 @@ class NewthonRaphson:
                 print("Vega is", f_prime)
                 break
 
+            # Update the guess for sigma
             new_guess = sigma - (f / f_prime)
 
+            # Check for convergence
             if abs(new_guess - sigma) < tolerance:
                 return new_guess
 

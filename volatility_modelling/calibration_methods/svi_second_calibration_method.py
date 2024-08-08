@@ -8,8 +8,22 @@ matplotlib.use('TkAgg')
 
 
 class SVICalibration:
+    """
+    This class performs the Stochastic Volatility Inspired (SVI) model calibration on market data.
+    It provides methods to calibrate the SVI model parameters and to visualize the fit.
+    """
 
     def __init__(self, market_strikes: np.array, spot_price: float, market_ivs: np.array, maturities: np.array):
+        """
+        Initializes the SVICalibration object.
+
+        Parameters:
+        market_strikes (np.array): Array of market strike prices.
+        spot_price (float): The current price of the underlying asset.
+        market_ivs (np.array): Array of market implied volatilities.
+        maturities (np.array): Array of option maturities.
+        """
+
         self.market_strikes = market_strikes
         self.spot_price = spot_price
         self.market_ivs = market_ivs
@@ -20,12 +34,49 @@ class SVICalibration:
 
     @staticmethod
     def _svi_quasi(y, a, d, c):
+        """
+        SVI quasi-explicit function.
+
+        Parameters:
+        y (np.array): Transformed log moneyness.
+        a (float): Parameter a.
+        d (float): Parameter d.
+        c (float): Parameter c.
+
+        Returns:
+        np.array: Values of the SVI quasi-explicit function.
+        """
         return a + d * y + c * np.sqrt(np.square(y) + 1)
 
     def svi_quasi_rmse(self, iv, y, a, d, c):
+        """
+        Calculates the root mean square error (RMSE) for the SVI quasi-explicit function.
+
+        Parameters:
+        iv (np.array): Implied volatilities.
+        y (np.array): Transformed log moneyness.
+        a (float): Parameter a.
+        d (float): Parameter d.
+        c (float): Parameter c.
+
+        Returns:
+        float: The RMSE value.
+        """
         return np.sqrt(np.mean(np.square(self._svi_quasi(y, a, d, c) - iv)))
 
     def calc_adc(self, iv, m, sigma):
+        """
+        Calculates the parameters a, d, and c for the SVI quasi-explicit function.
+
+        Parameters:
+        iv (np.array): Implied volatilities.
+        m (float): Parameter m.
+        sigma (float): Parameter sigma.
+
+        Returns:
+        tuple: The parameters a, d, and c.
+        """
+
         y = (self.log_moneyness - m) / sigma
         s = max(sigma, 1e-6)
         bnd = ((0, 0, 0), (max(iv.max(), 1e-6), 2 * np.sqrt(2) * s, 2 * np.sqrt(2) * s))
@@ -37,6 +88,16 @@ class SVICalibration:
         return a, np.sqrt(2) / 2 * (d - c), np.sqrt(2) / 2 * (d + c)
 
     def opt_msigma(self, msigma, iv):
+        """
+        Optimization function for parameters m and sigma.
+
+        Parameters:
+        msigma (tuple): Initial values for m and sigma.
+        iv (np.array): Implied volatilities.
+
+        Returns:
+        float: The sum of squared differences between the SVI quasi-explicit function and the implied volatilities.
+        """
         m, sigma = msigma
         y = (self.log_moneyness - m) / sigma
         _a, _d, _c = self.calc_adc(iv, m, sigma)
@@ -44,10 +105,36 @@ class SVICalibration:
 
     @staticmethod
     def quasi2raw(a, d, c, m, sigma):
+        """
+        Converts quasi-explicit parameters to raw SVI parameters.
+
+        Parameters:
+        a (float): Parameter a.
+        d (float): Parameter d.
+        c (float): Parameter c.
+        m (float): Parameter m.
+        sigma (float): Parameter sigma.
+
+        Returns:
+        tuple: The raw SVI parameters.
+        """
         # a, b, rho, m, sigma
         return a, c / sigma, d / c, m, sigma
 
     def quasi_calibration(self, init_msigma, maxiter=100, exit=1e-12, verbose=False):
+        """
+        Performs the quasi-explicit SVI calibration using least squares.
+
+        Parameters:
+        init_msigma (list): Initial values for m and sigma.
+        maxiter (int): Maximum number of iterations.
+        exit (float): Convergence threshold.
+        verbose (bool): If True, prints detailed progress information.
+
+        Returns:
+        tuple: The calibrated SVI parameters.
+        """
+
         opt_rmse = 1
         x = self.log_moneyness
         T = self.maturities.max()
@@ -77,19 +164,14 @@ class SVICalibration:
         self.params = (a, b, rho, m, sigma)
         return self.params
 
-    def reset_class_variable_data(self, market_strikes: np.array, spot_price: float, market_ivs: np.array, maturities: np.array):
-        self.market_strikes = market_strikes
-        self.spot_price = spot_price
-        self.market_ivs = market_ivs
-        self.maturities = maturities
-        self.log_moneyness = np.log(market_strikes / spot_price)
-        self.params = None
-
     def plot_fit(self):
         """
-            Plots the volatility smile from the SVI
-            :return:
-            """
+        Plots the volatility smile from the SVI model against market data.
+
+        Raises:
+        ValueError: If the model parameters have not been successfully calibrated.
+        """
+
         if self.params is None:
             raise ValueError("Model parameters have not yet been successfully calibrated.")
 
