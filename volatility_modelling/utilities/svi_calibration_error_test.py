@@ -9,7 +9,7 @@ matplotlib.use('TkAgg')
 
 
 def get_surface_data():
-    deribit_chain = pd.read_csv("../../data/dataset_5_cleaned.csv")
+    deribit_chain = pd.read_csv("../../data/options_market_data_cleaned.csv.csv")
     deribit_chain['Expiry_Date'] = pd.to_datetime(deribit_chain['Expiry_Date'])
     deribit_chain['Expiry_Date'] = deribit_chain['Expiry_Date'].dt.strftime('%d%b%y').str.upper()
     deribit_chain['Strike_Price'] = deribit_chain['Strike_Price'].astype(int).astype(str)

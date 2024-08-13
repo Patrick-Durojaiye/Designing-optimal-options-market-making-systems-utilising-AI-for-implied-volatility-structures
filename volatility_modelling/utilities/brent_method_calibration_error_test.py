@@ -9,7 +9,7 @@ matplotlib.use('TkAgg')
 
 
 def get_surface_data():
-    deribit_chain = pd.read_csv("../../data/dataset_5_cleaned.csv")
+    deribit_chain = pd.read_csv("../../data/options_market_data_cleaned.csv")
     deribit_chain['Expiry_Date'] = pd.to_datetime(deribit_chain['Expiry_Date'])
     deribit_chain['Expiry_Date'] = deribit_chain['Expiry_Date'].dt.strftime('%d%b%y').str.upper()
     deribit_chain['Strike_Price'] = deribit_chain['Strike_Price'].astype(int).astype(str)
@@ -38,7 +38,6 @@ def get_surface_data():
         timestamp_dict[timestamp] = expiry_date_dict
 
     first_timestamp = list(timestamp_dict.keys())[10]
-    # we are using expiry number 8
     expiry_dates = list(timestamp_dict[first_timestamp].keys())
 
     return timestamp_dict[first_timestamp], expiry_dates
