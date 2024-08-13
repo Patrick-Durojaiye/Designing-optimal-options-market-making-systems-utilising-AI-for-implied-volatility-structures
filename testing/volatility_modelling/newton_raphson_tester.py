@@ -9,9 +9,8 @@ matplotlib.use('TkAgg')
 def test_newton_raphson(initial_guess):
     data = get_test_data()
     risk_free_rate = round(data['Risk_Free_Rate'].iloc[0], 6)
-    strike_prices = data["Strike_Price"]
     maturities = round(data['Time_To_Maturity'].unique()[0], 6)
-    market_ivs = data["mid_iv"] / 100
+    market_ivs = data["mid_iv"]
     spot_price = data['Coin_Price'].iloc[0]
     expiry = data["Expiry_Date"].iloc[0]
     nr = NewthonRaphson(max_iter=100)
@@ -28,7 +27,6 @@ def test_newton_raphson(initial_guess):
         implied_vols.append(implied_vol)
 
     print(implied_vols)
-    print("Expiry", data["Expiry_Date"].iloc[0])
     plt.plot(moneyness, implied_vols, label='Newton Raphson Method Vols')
     plt.plot(moneyness, market_ivs, label='Market Vols')
     plt.xlabel('Log Moneyness log(Strike/Spot)')

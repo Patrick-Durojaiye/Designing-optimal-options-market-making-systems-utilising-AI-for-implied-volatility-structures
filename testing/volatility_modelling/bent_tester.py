@@ -10,7 +10,7 @@ def test_brent_method():
     data = get_test_data()
     risk_free_rate = round(data['Risk_Free_Rate'].iloc[0], 6)
     maturities = round(data['Time_To_Maturity'].unique()[0], 6)
-    market_ivs = data["mid_iv"] / 100
+    market_ivs = data["mid_iv"]
     expiry = data["Expiry_Date"].iloc[0]
 
     bren = BrentMethod(max_iter=1000)
@@ -19,15 +19,14 @@ def test_brent_method():
     spot_price = data['Coin_Price'].iloc[1]
     moneyness = []
 
-    print("spot", data['Coin_Price'].iloc[0])
-
     for idx, row in data.iterrows():
         k = row["Strike_Price"]
         C = row["Market_Price"]
+        p_price = row["Put_Price"]
         moneyness_value = np.log(k / spot_price)
         moneyness.append(moneyness_value)
         implied_vol = bren.brent_solution(spot_price=spot_price, strike_price=k, r=risk_free_rate, t=maturities,
-                                          market_price=C, moneyness=moneyness_value)
+                                          market_price=C, moneyness=moneyness_value, put_price=p_price)
 
         implied_vols.append(implied_vol)
 
@@ -35,8 +34,6 @@ def test_brent_method():
     mae = np.mean(absolute_errors)
     print(f"Mean Absolute Error (MAE): {mae}")
 
-
-    print(implied_vols)
     plt.plot(moneyness, implied_vols, label='Brent Method Vols')
     plt.plot(moneyness, market_ivs, label='Market Vols')
     plt.xlabel('Log Moneyness')

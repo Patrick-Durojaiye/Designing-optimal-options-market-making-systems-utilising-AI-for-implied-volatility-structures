@@ -1,46 +1,84 @@
 import numpy as np
-from svi_model import SVIModel
-
+from volatility_modelling.models.svi_model import SVIModel
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+from scipy.interpolate import griddata
 
 class SVISurfaceBuilder:
-
+    """
+    A class for plotting the implied volatility surface from the Stochastic Volatility Inspired (SVI).
+    """
     def __init__(self, parametised_data):
+        """
+        Initialize the SVISurfaceBuilder object with market data.
+
+        :param parametised_data: Data of SVI parameters
+        """
         self.parametised_data = parametised_data
-        self.maturities = self.parametised_data["Maturities"]
-        self.market_strikes = self.parametised_data["Strikes"]
-        self.spot_price = self.parametised_data['Coin_Price'].iloc[0]
+        self.maturities = self.parametised_data.index.tolist()
+        self.moneyness = self.parametised_data["moneyness"]
         self.svi_model = SVIModel()
 
     def construct_iv_surface(self):
         """
         Constructs an implied volatility surface (IVS)
 
-        This method constructs an IVS from the calibrated SVI parameters. For maturities that are not available the
-        method interporlates the parameters.
-        :raises:
-            ValueError: If the SVI parameters have not yet been successfully calibrated
+        This method constructs an IVS from the calibrated SVI parameters using the original moneyness values.
+
         :return:
-            - iv_surface (np.array) : IVS data stored in an array
+            - iv_surface (list of np.arrays) : IVS data stored as a list of arrays, one for each maturity
+            - moneyness_list (list of np.arrays) : Original moneyness values for each maturity
         """
 
-        iv_surface = np.zeros((len(self.maturities), len(self.market_strikes)))
+        iv_surface = []
+        moneyness_list = []
 
         for i, T in enumerate(self.maturities):
-            for j, K in enumerate(self.market_strikes):
+            params = [self.parametised_data["a"].iloc[i], self.parametised_data["b"].iloc[i],
+                      self.parametised_data["rho"].iloc[i],
+                      self.parametised_data["m"].iloc[i], self.parametised_data["sigma"].iloc[i]]
 
-                x = np.log(K / self.spot_price)
+            current_moneyness = self.moneyness.iloc[i]
+            current_iv = []
 
-                if T in self.maturities:
-                    params = [self.parametised_data["a"], self.parametised_data["b"], self.parametised_data["rho"],
-                              self.parametised_data["m"], self.params["sigma"]]
+            for lm in current_moneyness:
+                try:
+                    svi_value = self.svi_model.evaluate_svi(params, lm)
+                    iv = np.sqrt(svi_value)
+                    current_iv.append(iv)
+                except Exception as e:
+                    print(f"Error at T={T}, lm={lm}, params={params}: {str(e)}")
+                    current_iv.append(np.nan)
 
-                else:
-                    # If T is not in maturities, interpolation is used
-                    interpolated_params = []
-                    for param_set in zip(*self.params):
-                        interpolated_params.append(np.interp(T, self.maturities, param_set))
-                    params = interpolated_params
+            iv_surface.append(np.array(current_iv))
+            moneyness_list.append(np.array(current_moneyness))
 
-                iv_surface[i, j] = np.sqrt(self.svi_model.evaluate_svi(params, x))
+        return iv_surface, moneyness_list
 
-        return iv_surface
+    def plot_iv_surface(self):
+        """
+        Plots the implied volatility surface
+        """
+        iv_surface, moneyness_list = self.construct_iv_surface()
+
+        X_flat = np.concatenate([np.repeat(m, len(moneyness)) for m, moneyness in zip(self.maturities, moneyness_list)])
+        Y_flat = np.concatenate(moneyness_list)
+        Z_flat = np.concatenate(iv_surface)
+
+        X_grid, Y_grid = np.meshgrid(np.linspace(min(Y_flat), max(Y_flat), 100),
+                                     np.linspace(min(X_flat), max(X_flat), 100))
+
+        Z_grid = griddata((Y_flat, X_flat), Z_flat, (X_grid, Y_grid), method="cubic")
+
+        fig = plt.figure(figsize=(12, 12))
+        ax = fig.add_subplot(111, projection="3d")
+
+        surf = ax.plot_surface(X_grid, Y_grid, Z_grid, cmap="coolwarm")
+
+        ax.set_xlabel("Log Moneyness log(K/S)")
+        ax.set_ylabel("Time to Maturity")
+        ax.set_zlabel("IV")
+        ax.set_title("BTC Implied Volatility Surface")
+        fig.colorbar(surf, shrink=0.5, aspect=5)
+
+        plt.show()
