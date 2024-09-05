@@ -4,7 +4,7 @@ from volatility_modelling.calibration_methods.newton_raphson_calibration import 
 from testing.test_data import get_test_data
 import numpy as np
 matplotlib.use('TkAgg')
-
+from datetime import datetime
 
 def test_newton_raphson(initial_guess):
     data = get_test_data()
@@ -17,6 +17,8 @@ def test_newton_raphson(initial_guess):
     implied_vols = []
     moneyness = []
 
+    fails = 0
+    total_points = 0
     for idx, row in data.iterrows():
         k = row["Strike_Price"]
         C = row["Market_Price"]
@@ -26,7 +28,16 @@ def test_newton_raphson(initial_guess):
 
         implied_vols.append(implied_vol)
 
-    print(implied_vols)
+    residuals = [(market_iv - newton_iv) for market_iv, newton_iv in zip(market_ivs, implied_vols)]
+    total_points += len(residuals)
+    for error in residuals:
+        if error > 0.05:
+            fails += 1
+
+    print("Fails:", fails)
+    print("Total points:", total_points)
+
+    # print(implied_vols)
     plt.plot(moneyness, implied_vols, label='Newton Raphson Method Vols')
     plt.plot(moneyness, market_ivs, label='Market Vols')
     plt.xlabel('Log Moneyness log(Strike/Spot)')

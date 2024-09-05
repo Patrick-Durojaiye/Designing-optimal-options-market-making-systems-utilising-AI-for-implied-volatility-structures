@@ -47,13 +47,22 @@ def brent_mae_errors():
     timestamp_dict, expiry_dates = get_surface_data()
 
     mae_per_expiry = []
+
+    all_moneyness = []
+    all_residuals = []
+    all_expiry_labels = []
+
+    fails = 0
+    total_points = 0
+
     for expiry in expiry_dates:
+        print("expiry:", expiry)
         data = timestamp_dict[expiry]
 
         risk_free_rate = round(data['Risk_Free_Rate'].iloc[0], 6)
         maturities = round(data['Time_To_Maturity'].unique()[0], 6)
         market_ivs = data["mid_iv"]
-        expiry = data["Expiry_Date"].iloc[0]
+        expiry_date = data["Expiry_Date"].iloc[0]
 
         bren = BrentMethod(max_iter=1000)
 
@@ -72,7 +81,18 @@ def brent_mae_errors():
 
             implied_vols.append(implied_vol)
 
+        residuals = [(market_iv - brent_iv) for market_iv, brent_iv in zip(market_ivs, implied_vols)]
+        all_moneyness.extend(moneyness)
+        all_residuals.extend(residuals)
+        all_expiry_labels.extend([expiry] * len(moneyness))
+
         absolute_errors = [abs(iv - market_iv) for iv, market_iv in zip(implied_vols, market_ivs)]
+
+        total_points += len(residuals)
+        for error in residuals:
+            if error > 0.05 or error < -0.05:
+                fails += 1
+
         mae = np.mean(absolute_errors)
         mae_per_expiry.append(mae)
         print(f"Mean Absolute Error (MAE): {mae}")
@@ -81,7 +101,7 @@ def brent_mae_errors():
         plt.plot(moneyness, market_ivs, label='Market Vols')
         plt.xlabel('Log Moneyness')
         plt.ylabel('Implied Volatility')
-        plt.title(f"Implied Volatility Smile - {expiry}")
+        plt.title(f"Implied Volatility Smile - {expiry_date}")
         plt.legend()
         plt.show()
 
@@ -90,6 +110,17 @@ def brent_mae_errors():
         plt.ylabel("Absolute Error")
         plt.title(f"Calibration Error (MAE: {mae:.4f})")
         plt.show()
+
+    print("Avg failure rate", (fails/total_points)*100)
+
+    plt.scatter(all_moneyness, all_residuals, c=all_expiry_labels, cmap='viridis', alpha=0.7)
+    plt.axhline(0, color='red', linestyle='--', label='Zero Residual')
+    plt.colorbar(label='Time To Maturity')
+    plt.xlabel("Log Moneyness")
+    plt.ylabel("Residuals (Market IV - Brent Method IV)")
+    plt.title("Residuals Across All Maturities")
+    plt.legend()
+    plt.show()
 
     print("MAE per expiry", mae_per_expiry)
 

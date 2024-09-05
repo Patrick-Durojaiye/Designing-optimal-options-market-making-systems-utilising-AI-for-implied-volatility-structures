@@ -1,6 +1,7 @@
 import numpy as np
 from volatility_modelling.calibration_methods.svi_parameters_calibration import SVICalibration
 from testing.test_data import get_test_data
+from datetime import datetime
 
 
 def test_svi_calibration():
@@ -24,8 +25,10 @@ def test_svi_calibration():
     spot_price = data['Coin_Price'].iloc[0]
 
     svi = SVICalibration(market_strikes=strikes, spot_price=spot_price, market_ivs=market_vols, maturities=maturities)
+    start_time = datetime.now()
     svi_params = svi.calibrate()
-
+    end_time = datetime.now()
+    print("Elasped time", end_time-start_time)
     print("Svi Params:", svi_params)
     svi.plot_fit()
     return svi_params

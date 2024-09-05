@@ -1,0 +1,45 @@
+2024-09-02 14:21:33,127 - INFO - Data collected and appended to market_collection.csv
+2024-09-02 14:24:14,978 - INFO - Data collected and appended to market_collection.csv
+2024-09-02 14:26:56,908 - INFO - Data collected and appended to market_collection.csv
+2024-09-02 14:29:40,497 - INFO - Data collected and appended to market_collection.csv
+2024-09-02 14:32:12,465 - ERROR - Failed to fetch data for BTC-13SEP24-82000-C after 3 attempts: HTTPSConnectionPool(host='deribit.com', port=443): Max retries exceeded with url: /api/v2/public/get_order_book?instrument_name=BTC-13SEP24-82000-C (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x00000183332754F0>: Failed to resolve 'deribit.com' ([Errno 11001] getaddrinfo failed)"))
+2024-09-02 14:32:12,479 - ERROR - Failed to fetch data for BTC-6SEP24-67000-P after 3 attempts: HTTPSConnectionPool(host='deribit.com', port=443): Max retries exceeded with url: /api/v2/public/get_order_book?instrument_name=BTC-6SEP24-67000-P (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x0000018334DA91C0>: Failed to resolve 'deribit.com' ([Errno 11001] getaddrinfo failed)"))
+2024-09-02 14:32:12,544 - ERROR - Failed to fetch data for BTC-27JUN25-130000-C after 3 attempts: HTTPSConnectionPool(host='deribit.com', port=443): Max retries exceeded with url: /api/v2/public/get_order_book?instrument_name=BTC-27JUN25-130000-C (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x0000018334D967F0>: Failed to resolve 'deribit.com' ([Errno 11001] getaddrinfo failed)"))
+2024-09-02 14:32:14,486 - ERROR - Failed to fetch data for BTC-4SEP24-58000-C after 3 attempts: HTTPSConnectionPool(host='deribit.com', port=443): Max retries exceeded with url: /api/v2/public/get_order_book?instrument_name=BTC-4SEP24-58000-C (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x0000018332FF9A90>: Failed to resolve 'deribit.com' ([Errno 11001] getaddrinfo failed)"))
+2024-09-02 14:32:14,500 - ERROR - Failed to fetch data for BTC-28MAR25-85000-P after 3 attempts: HTTPSConnectionPool(host='deribit.com', port=443): Max retries exceeded with url: /api/v2/public/get_order_book?instrument_name=BTC-28MAR25-85000-P (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x0000018334DB5DF0>: Failed to resolve 'deribit.com' ([Errno 11001] getaddrinfo failed)"))
+2024-09-02 14:32:14,565 - ERROR - Failed to fetch data for BTC-4SEP24-54000-C after 3 attempts: HTTPSConnectionPool(host='deribit.com', port=443): Max retries exceeded with url: /api/v2/public/get_order_book?instrument_name=BTC-4SEP24-54000-C (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x0000018332FFA400>: Failed to resolve 'deribit.com' ([Errno 11001] getaddrinfo failed)"))
+2024-09-02 14:32:16,511 - ERROR - Failed to fetch data for BTC-27SEP24-24000-P after 3 attempts: HTTPSConnectionPool(host='deribit.com', port=443): Max retries exceeded with url: /api/v2/public/get_order_book?instrument_name=BTC-27SEP24-24000-P (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x0000018332FF9370>: Failed to resolve 'deribit.com' ([Errno 11001] getaddrinfo failed)"))
+2024-09-02 14:32:16,527 - ERROR - Failed to fetch data for BTC-25OCT24-61000-C after 3 attempts: HTTPSConnectionPool(host='deribit.com', port=443): Max retries exceeded with url: /api/v2/public/get_order_book?instrument_name=BTC-25OCT24-61000-C (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x0000018333011FD0>: Failed to resolve 'deribit.com' ([Errno 11001] getaddrinfo failed)"))
+2024-09-02 14:32:41,096 - WARNING - Failed to fetch data for 8 options: ['BTC-13SEP24-82000-C', 'BTC-6SEP24-67000-P', 'BTC-27JUN25-130000-C', 'BTC-4SEP24-58000-C', 'BTC-28MAR25-85000-P', 'BTC-4SEP24-54000-C', 'BTC-27SEP24-24000-P', 'BTC-25OCT24-61000-C']
+2024-09-02 14:32:41,682 - INFO - Data collected and appended to market_collection.csv
+2024-09-02 14:35:28,872 - INFO - Data collected and appended to market_collection.csv
+2024-09-02 14:38:19,723 - INFO - Data collected and appended to market_collection.csv
+2024-09-02 14:41:08,488 - INFO - Data collected and appended to market_collection.csv
+2024-09-02 14:43:50,744 - INFO - Data collected and appended to market_collection.csv
+2024-09-02 15:29:52,115 - INFO - Data collected and appended to market_collection.csv
+2024-09-02 15:31:52,117 - ERROR - An error occurred during data collection: HTTPSConnectionPool(host='deribit.com', port=443): Max retries exceeded with url: /api/v2/public/get_instruments?currency=BTC&kind=option&expired=false (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x0000016F739019D0>: Failed to resolve 'deribit.com' ([Errno 11001] getaddrinfo failed)"))
+2024-09-02 15:34:41,762 - INFO - Data collected and appended to market_collection.csv
+2024-09-02 15:36:41,763 - ERROR - An error occurred during data collection: HTTPSConnectionPool(host='deribit.com', port=443): Max retries exceeded with url: /api/v2/public/get_instruments?currency=BTC&kind=option&expired=false (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x0000016F7311CAF0>: Failed to resolve 'deribit.com' ([Errno 11001] getaddrinfo failed)"))
+2024-09-02 15:39:28,446 - INFO - Data collected and appended to market_collection.csv
+2024-09-02 15:42:13,490 - INFO - Data collected and appended to market_collection.csv
+2024-09-02 15:44:56,793 - INFO - Data collected and appended to market_collection.csv
+2024-09-02 15:47:47,181 - INFO - Data collected and appended to market_collection.csv
+2024-09-02 15:50:34,828 - INFO - Data collected and appended to market_collection.csv
+2024-09-02 20:39:16,370 - INFO - Data collected and appended to market_collection.csv
+2024-09-02 20:41:59,173 - INFO - Data collected and appended to market_collection.csv
+2024-09-02 20:44:41,994 - INFO - Data collected and appended to market_collection.csv
+2024-09-02 20:47:24,729 - INFO - Data collected and appended to market_collection.csv
+2024-09-02 20:50:07,646 - INFO - Data collected and appended to market_collection.csv
+2024-09-02 20:52:50,727 - INFO - Data collected and appended to market_collection.csv
+2024-09-02 20:55:33,282 - INFO - Data collected and appended to market_collection.csv
+2024-09-02 20:58:15,255 - INFO - Data collected and appended to market_collection.csv
+2024-09-02 21:00:59,327 - INFO - Data collected and appended to market_collection.csv
+2024-09-02 21:03:41,262 - INFO - Data collected and appended to market_collection.csv
+2024-09-02 21:06:23,135 - INFO - Data collected and appended to market_collection.csv
+2024-09-02 21:09:05,136 - INFO - Data collected and appended to market_collection.csv
+2024-09-02 21:11:47,797 - INFO - Data collected and appended to market_collection.csv
+2024-09-02 21:14:30,462 - INFO - Data collected and appended to market_collection.csv
+2024-09-02 21:17:12,247 - INFO - Data collected and appended to market_collection.csv
+2024-09-02 21:19:54,201 - INFO - Data collected and appended to market_collection.csv
+2024-09-02 21:22:37,522 - INFO - Data collected and appended to market_collection.csv
+2024-09-02 21:25:21,096 - INFO - Data collected and appended to market_collection.csv

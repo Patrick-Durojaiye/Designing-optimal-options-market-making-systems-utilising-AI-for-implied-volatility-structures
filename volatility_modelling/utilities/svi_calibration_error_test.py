@@ -9,7 +9,7 @@ matplotlib.use('TkAgg')
 
 
 def get_surface_data():
-    deribit_chain = pd.read_csv("../../data/options_market_data_cleaned.csv.csv")
+    deribit_chain = pd.read_csv("../../data/options_market_data_cleaned.csv")
     deribit_chain['Expiry_Date'] = pd.to_datetime(deribit_chain['Expiry_Date'])
     deribit_chain['Expiry_Date'] = deribit_chain['Expiry_Date'].dt.strftime('%d%b%y').str.upper()
     deribit_chain['Strike_Price'] = deribit_chain['Strike_Price'].astype(int).astype(str)
@@ -78,7 +78,16 @@ def svi_mae_errors():
     svi = SVIModel()
 
     mae_per_expiry = []
+
+    all_moneyness = []
+    all_residuals = []
+    all_expiry_labels = []
+
+    fails = 0
+    total_points = 0
+
     for expiry in expiry_dates:
+        print("expiry:", expiry)
         data = timestamp_dict[expiry]
         svi_data = svi_timestamp_dict[expiry]
 
@@ -93,9 +102,20 @@ def svi_mae_errors():
         m = svi_data['m'].iloc[0]
         sigma = svi_data['sigma'].iloc[0]
 
-        implied_vols = np.sqrt([svi.evaluate_svi((a, b, rho, m, sigma), lm) / expiry for lm in moneyness])
+        implied_vols = np.sqrt([svi.evaluate_svi((a, b, rho, m, sigma), lm) for lm in moneyness])
 
-        print(implied_vols)
+        # print(implied_vols)
+
+        residuals = [(market_iv - svi_iv) for market_iv, svi_iv in zip(market_ivs, implied_vols)]
+        all_moneyness.extend(moneyness)
+        all_residuals.extend(residuals)
+        all_expiry_labels.extend([expiry] * len(moneyness))
+
+        total_points += len(residuals)
+        for error in residuals:
+            if error > 0.05 or error < -0.05:
+                fails += 1
+
 
         absolute_errors = [abs(svi_iv**2 - market_iv**2) for svi_iv, market_iv in zip(implied_vols, market_ivs)]
         mae = np.mean(absolute_errors)
@@ -103,20 +123,33 @@ def svi_mae_errors():
 
         rmse = [np.sqrt(((svi_iv**2 - market_iv**2)**2).mean()) for svi_iv, market_iv in zip(implied_vols, market_ivs)]
         print(f"Mean Absolute Error (MAE): {mae}")
-        print(f"RMSE: {rmse}")
-        plt.plot(moneyness, implied_vols, label='SVI Vols')
-        plt.plot(moneyness, market_ivs, label='Market Vols')
-        plt.xlabel('Log Moneyness')
-        plt.ylabel('Implied Volatility')
-        plt.title(f"Implied Volatility Smile - {expiry_date}")
-        plt.legend()
-        plt.show()
+        # print(f"RMSE: {rmse}")
 
-        plt.plot(moneyness, absolute_errors, label="Calibration Absolute Errors")
-        plt.xlabel("Log Moneyness")
-        plt.ylabel("Absolute Error")
-        plt.title(f"Calibration Error (MAE: {mae:.4f})")
-        plt.show()
+        # plt.plot(moneyness, implied_vols, label='SVI Vols')
+        # plt.plot(moneyness, market_ivs, label='Market Vols')
+        # plt.xlabel('Log Moneyness')
+        # plt.ylabel('Implied Volatility')
+        # plt.title(f"Implied Volatility Smile - {expiry_date}")
+        # plt.legend()
+        # plt.show()
+        #
+        # plt.plot(moneyness, absolute_errors, label="Calibration Absolute Errors")
+        # plt.xlabel("Log Moneyness")
+        # plt.ylabel("Absolute Error")
+        # plt.title(f"Calibration Error (MAE: {mae:.4f})")
+        # plt.show()
+
+    print("Avg failure rate", (fails / total_points) * 100)
+
+    plt.scatter(all_moneyness, all_residuals, c=all_expiry_labels, cmap='viridis', alpha=0.7)
+    plt.axhline(0, color='red', linestyle='--', label='Zero Residual')
+    plt.colorbar(label='Time To Maturity')
+    plt.xlabel("Log Moneyness")
+    plt.ylabel("Residuals (Market IV - SVI IV)")
+    plt.title("Residuals Across All Maturities")
+    plt.legend()
+    plt.show()
+
 
     print("MAE per expiry", mae_per_expiry)
 
